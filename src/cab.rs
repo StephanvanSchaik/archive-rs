@@ -58,6 +58,27 @@ pub struct CabArchive<R> {
     entries: Vec<FileEntry>
 }
 
+impl<R: Read + Seek> CabArchive<R> {
+    pub fn new(reader: R) -> Result<Self, Error> {
+        let archive = cab::Cabinet::new(reader)?;
+        let mut entries = vec![];
+
+        for folder_entry in archive.folder_entries() {
+            for file_entry in folder_entry.file_entries() {
+                entries.push(FileEntry {
+                    path: PathBuf::from(file_entry.name()),
+                    name: file_entry.name().to_string(),
+                });
+            }
+        }
+
+        Ok(Self {
+            archive,
+            entries,
+        })
+    }
+}
+
 impl<R: Read + Seek> Archive<R> for CabArchive<R> {
     fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
         Ok(Entries::Cab(CabEntries {

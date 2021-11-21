@@ -48,6 +48,14 @@ pub struct ZipArchive<R> {
     archive: zip::ZipArchive<R>,
 }
 
+impl<R: Read + Seek> ZipArchive<R> {
+    pub fn new(reader: R) -> Result<Self, Error> {
+        Ok(Self {
+            archive: zip::ZipArchive::new(reader)?,
+        })
+    }
+}
+
 impl<R: Read + Seek> Archive<R> for ZipArchive<R> {
     fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
         Ok(Entries::Zip(ZipEntries {
