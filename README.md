@@ -14,4 +14,4 @@ The following file formats are currently supported:
 * [x] .tar.bz2 (thanks to [tar](https://crates.io/crates/tar) and [bzip2](https://crates.io/crates/bzip2))
 * [x] .tar.gz (thanks to [tar](https://crates.io/crates/tar) and [flate2](https://crates.io/crates/flate2))
 * [x] .tar.xz (thanks to [tar](https://crates.io/crates/tar) and [rust-lzma](https://crates.io/crates/rust-lzma))
-* [x] .zip (thanks to [zip](https://crates.io/crates/zip) and [zip](https://crates.io/crates/zip))
+* [x] .zip (thanks to [zip](https://crates.io/crates/zip))
