@@ -35,6 +35,7 @@ impl<'c, R: Read + Seek> LendingIterator for ZipEntries<'c, R> {
 
         let entry = match self.archive.by_index(index) {
             Ok(entry) => entry,
+            Err(zip::result::ZipError::FileNotFound) => return None,
             Err(e) => return Some(Err(Error::Zip(e))),
         };
 
