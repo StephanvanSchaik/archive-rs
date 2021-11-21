@@ -71,36 +71,87 @@ impl<R: Read> TarArchive<R> {
     }
 }
 
-#[cfg(feature = "bzip2")]
-impl<R: Read> TarArchive<bzip2::read::BzDecoder<R>> {
-    pub fn from_bzip2(reader: R) -> Result<Self, Error> {
-        let decoder = bzip2::read::BzDecoder::new(reader);
+impl<R: Read> Archive<R> for TarArchive<R> {
+    fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
+        Ok(Entries::Tar(TarEntries {
+            entries: self.archive.entries()?,
+        }))
+    }
+}
 
-        Ok(Self::new(decoder)?)
+#[cfg(feature = "bzip2")]
+pub struct Bzip2TarArchive<R: Read> {
+    archive: tar::Archive<bzip2::read::BzDecoder<R>>,
+}
+
+#[cfg(feature = "bzip2")]
+impl<R: Read> Bzip2TarArchive<R> {
+    pub fn new(reader: R) -> Result<Self, Error> {
+        let decoder = bzip2::read::BzDecoder::new(reader);
+        let archive = tar::Archive::new(decoder);
+
+        Ok(Self {
+            archive,
+        })
+    }
+}
+
+#[cfg(feature = "bzip2")]
+impl<R: Read> Archive<R> for Bzip2TarArchive<R> {
+    fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
+        Ok(Entries::Bzip2Tar(TarEntries {
+            entries: self.archive.entries()?,
+        }))
     }
 }
 
 #[cfg(feature = "gzip")]
-impl<R: Read> TarArchive<flate2::read::GzDecoder<R>> {
-    pub fn from_gzip(reader: R) -> Result<Self, Error> {
-        let decoder = flate2::read::GzDecoder::new(reader);
+pub struct GzipTarArchive<R: Read> {
+    archive: tar::Archive<flate2::read::GzDecoder<R>>,
+}
 
-        Ok(Self::new(decoder)?)
+#[cfg(feature = "gzip")]
+impl<R: Read> GzipTarArchive<R> {
+    pub fn new(reader: R) -> Result<Self, Error> {
+        let decoder = flate2::read::GzDecoder::new(reader);
+        let archive = tar::Archive::new(decoder);
+
+        Ok(Self {
+            archive,
+        })
+    }
+}
+
+#[cfg(feature = "gzip")]
+impl<R: Read> Archive<R> for GzipTarArchive<R> {
+    fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
+        Ok(Entries::GzipTar(TarEntries {
+            entries: self.archive.entries()?,
+        }))
     }
 }
 
 #[cfg(feature = "lzma")]
-impl <R: Read> TarArchive<lzma::LzmaReader<R>> {
-    pub fn from_xz(reader: R) -> Result<Self, Error> {
-        let decoder = lzma::LzmaReader::new_decompressor(reader)?;
+pub struct LzmaTarArchive<R: Read> {
+    archive: tar::Archive<lzma::reader::LzmaReader<R>>,
+}
 
-        Ok(Self::new(decoder)?)
+#[cfg(feature = "lzma")]
+impl<R: Read> LzmaTarArchive<R> {
+    pub fn new(reader: R) -> Result<Self, Error> {
+        let decoder = lzma::LzmaReader::new_decompressor(reader)?;
+        let archive = tar::Archive::new(decoder);
+
+        Ok(Self {
+            archive,
+        })
     }
 }
 
-impl<R: Read> Archive<R> for TarArchive<R> {
+#[cfg(feature = "lzma")]
+impl<R: Read> Archive<R> for LzmaTarArchive<R> {
     fn entries<'a>(&'a mut self) -> Result<Entries<'a, R>, Error> {
-        Ok(Entries::Tar(TarEntries {
+        Ok(Entries::LzmaTar(TarEntries {
             entries: self.archive.entries()?,
         }))
     }

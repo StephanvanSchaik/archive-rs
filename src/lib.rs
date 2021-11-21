@@ -30,6 +30,12 @@ pub enum Entries<'a, R: Read> {
     Cab(crate::cab::CabEntries<'a, R>),
     #[cfg(feature = "tar")]
     Tar(crate::tar::TarEntries<'a, R>),
+    #[cfg(all(feature = "tar", feature = "bzip2"))]
+    Bzip2Tar(crate::tar::TarEntries<'a, bzip2::read::BzDecoder<R>>),
+    #[cfg(all(feature = "tar", feature = "gzip"))]
+    GzipTar(crate::tar::TarEntries<'a, flate2::read::GzDecoder<R>>),
+    #[cfg(all(feature = "tar", feature = "lzma"))]
+    LzmaTar(crate::tar::TarEntries<'a, lzma::reader::LzmaReader<R>>),
     #[cfg(feature = "zip")]
     Zip(crate::zip::ZipEntries<'a, R>),
 }
@@ -41,6 +47,9 @@ impl<'a, R: Read + Seek> Iterator for Entries<'a, R> {
         match self {
             Entries::Cab(_) => None,
             Entries::Tar(ref mut entries) => entries.next(),
+            Entries::Bzip2Tar(ref mut entries) => entries.next(),
+            Entries::GzipTar(ref mut entries) => entries.next(),
+            Entries::LzmaTar(ref mut entries) => entries.next(),
             Entries::Zip(_) => None,
         }
     }
@@ -53,6 +62,9 @@ impl<'c, R: Read + Seek> LendingIterator for Entries<'c, R> {
         match self {
             Entries::Cab(ref mut entries) => entries.next(),
             Entries::Tar(_) => None,
+            Entries::Bzip2Tar(_) => None,
+            Entries::GzipTar(_) => None,
+            Entries::LzmaTar(_) => None,
             Entries::Zip(ref mut entries) => entries.next(),
         }
     }
